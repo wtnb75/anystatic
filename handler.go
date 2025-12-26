@@ -16,6 +16,7 @@ type Handler struct {
 }
 
 func NewHandler(fsys fs.StatFS) *Handler {
+	slog.Info("handler created", "root", fsys)
 	return &Handler{fs: fsys}
 }
 
@@ -71,6 +72,19 @@ func (h *Handler) serveHTTP(res http.ResponseWriter, req *http.Request) int {
 	}
 	content_length := info.Size()
 	encoded := false
+	ctype := "application/octet-stream"
+	if fp0, err := h.fs.Open(path); err == nil {
+		defer fp0.Close()
+		buf := make([]byte, 512)
+		if _, err := fp0.Read(buf); err == nil {
+			ctype = http.DetectContentType(buf)
+		} else {
+			slog.Error("read for content-type failed", "path", path, "error", err)
+		}
+	} else {
+		slog.Error("open original", "path", path, "error", err)
+	}
+	res.Header().Set("Content-Type", ctype)
 	for _, ae := range h.accepts(req.Header.Get("Accept-Encoding")) {
 		if cinfo, err := h.fs.Stat(path + ae.ext); err == nil {
 			if cinfo.ModTime().Round(time.Second).Before(info.ModTime().Round(time.Second)) {
@@ -83,19 +97,6 @@ func (h *Handler) serveHTTP(res http.ResponseWriter, req *http.Request) int {
 			}
 			res.Header().Set("Content-Encoding", ae.encode)
 			res.Header().Set("Content-Length", strconv.FormatInt(cinfo.Size(), 10))
-			ctype := "application/octet-stream"
-			if fp0, err := h.fs.Open(path); err == nil {
-				defer fp0.Close()
-				buf := make([]byte, 512)
-				if _, err := fp0.Read(buf); err == nil {
-					ctype = http.DetectContentType(buf)
-				} else {
-					slog.Error("read for content-type failed", "path", path, "error", err)
-				}
-			} else {
-				slog.Error("open original", "path", path, "ext", ae.ext, "error", err)
-			}
-			res.Header().Set("Content-Type", ctype)
 			fp, err = h.fs.Open(path + ae.ext)
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
