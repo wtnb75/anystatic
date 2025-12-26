@@ -64,6 +64,9 @@ func (h *Handler) accepts(accept string) []encodeInfo {
 func (h *Handler) serveHTTP(res http.ResponseWriter, req *http.Request) int {
 	var fp fs.File = nil
 	path := req.URL.Path
+	if path == "" || strings.HasSuffix(path, "/") {
+		path += "index.html"
+	}
 	info, err := h.fs.Stat(path)
 	if err != nil {
 		res.WriteHeader(http.StatusNotFound)
