@@ -26,6 +26,7 @@ type encodeInfo struct {
 }
 
 var sortorder = map[string]encodeInfo{
+	// brotli vs zstd: which is winner?
 	"br":       {ext: ".br", encode: "br", order: 1},
 	"zstd":     {ext: ".zst", encode: "zstd", order: 2},
 	"gzip":     {ext: ".gz", encode: "gzip", order: 3},
@@ -59,14 +60,14 @@ func (h *Handler) accepts(accept string) []encodeInfo {
 	return res
 }
 
-func (h *Handler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+func (h *Handler) serveHTTP(res http.ResponseWriter, req *http.Request) int {
 	var fp fs.File = nil
 	path := req.URL.Path
 	info, err := h.fs.Stat(path)
 	if err != nil {
 		res.WriteHeader(http.StatusNotFound)
 		slog.Error("stat failed", "path", path, "error", err)
-		return
+		return http.StatusNotFound
 	}
 	content_length := info.Size()
 	encoded := false
@@ -99,7 +100,7 @@ func (h *Handler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
 				slog.Error("open error", "path", path, "ext", ae.ext, "error", err)
-				return
+				return http.StatusInternalServerError
 			}
 			defer fp.Close()
 			slog.Debug("encoded file", "path", path, "ext", ae.ext)
@@ -113,11 +114,18 @@ func (h *Handler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			slog.Error("open error", "path", path, "error", err)
-			return
+			return http.StatusInternalServerError
 		}
 		defer fp.Close()
 	}
 	if _, err := io.Copy(res, fp); err != nil {
 		slog.Error("copy error", "path", path, "error", err)
 	}
+	return http.StatusOK
+}
+
+func (h *Handler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	st := time.Now()
+	code := h.serveHTTP(res, req)
+	slog.Info("accesslog", "method", req.Method, "path", req.URL.Path, "remote", req.RemoteAddr, "req-header", req.Header, "status", code, "res-header", res.Header(), "elapsed_ns", time.Since(st))
 }
