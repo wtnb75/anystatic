@@ -1,0 +1,9 @@
+displayName: AnyStatic Plugin
+type: middleware
+
+import: github.com/wtnb75/anystatic
+
+summary: 'any_static on;'
+
+testData:
+  RootDir: /path/to/dir
