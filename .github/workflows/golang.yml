@@ -1,0 +1,35 @@
+name: golang
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: stable
+    - name: format
+      run: go fmt ./...
+    - name: vet
+      run: go vet ./...
+    - name: lint
+      uses: golangci/golangci-lint-action@v7
+    - name: test
+      run: go test -v ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./... -json > report.json
+    - name: yaegi test
+      run: yaegi test .
+    - name: report
+      uses: becheran/go-testreport@main
+      with:
+        input: report.json
+    - name: coverage
+      run: |
+        echo "## coverage report" >> $GITHUB_STEP_SUMMARY
+        echo ''                   >> $GITHUB_STEP_SUMMARY
+        echo '```'                >> $GITHUB_STEP_SUMMARY
+        go tool cover -func=cover.out >> $GITHUB_STEP_SUMMARY
+        echo '```'                >> $GITHUB_STEP_SUMMARY
