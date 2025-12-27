@@ -12,6 +12,8 @@ jobs:
     - uses: actions/setup-go@v5
       with:
         go-version: stable
+    - name: prepare yaegi
+      run: go install github.com/traefik/yaegi/cmd/yaegi@latest
     - name: format
       run: go fmt ./...
     - name: vet
