@@ -33,7 +33,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 	return &AnyStatic{
 		next: next,
-		hdl:  http.StripPrefix("/", hdl),
+		hdl:  hdl,
 		name: name,
 	}, nil
 }
