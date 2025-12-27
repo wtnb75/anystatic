@@ -26,7 +26,7 @@ func realMain() error {
 	hdl := anystatic.NewHandler(fs)
 	server := http.Server{
 		Addr:    *listen,
-		Handler: http.StripPrefix("/", hdl),
+		Handler: hdl,
 	}
 	slog.Info("starting server", "addr", server.Addr)
 	return server.ListenAndServe()

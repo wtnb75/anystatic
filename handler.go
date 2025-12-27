@@ -63,7 +63,7 @@ func (h *Handler) accepts(accept string) []encodeInfo {
 
 func (h *Handler) serveHTTP(res http.ResponseWriter, req *http.Request) int {
 	var fp fs.File = nil
-	path := req.URL.Path
+	path := strings.TrimPrefix(req.URL.Path, "/")
 	if path == "" || strings.HasSuffix(path, "/") {
 		path += "index.html"
 	}
@@ -88,6 +88,7 @@ func (h *Handler) serveHTTP(res http.ResponseWriter, req *http.Request) int {
 		slog.Error("open original", "path", path, "error", err)
 	}
 	res.Header().Set("Content-Type", ctype)
+	res.Header().Set("Vary", "Accept-Encoding")
 	for _, ae := range h.accepts(req.Header.Get("Accept-Encoding")) {
 		if cinfo, err := h.fs.Stat(path + ae.ext); err == nil {
 			if cinfo.ModTime().Round(time.Second).Before(info.ModTime().Round(time.Second)) {

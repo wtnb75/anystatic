@@ -3,17 +3,19 @@ services:
     image: traefik:v3
     container_name: traefik
     command:
-    - --api.insecure=true
-    - --providers.docker
-    - --log.level=DEBUG
-    - --experimental.localPlugins.anystatic.modulename=github.com/wtnb75/anystatic
+      - --api.insecure=true
+      - --providers.docker
+      - --log.level=DEBUG
+      - --experimental.localPlugins.anystatic.modulename=github.com/wtnb75/anystatic
+    # - --experimental.plugins.anystatic.modulename=github.com/wtnb75/anystatic
+    # - --experimental.plugins.anystatic.version=1.0.0
     ports:
-    - 80:80
-    - 8800:8080
+      - 80:80
+      - 8800:8080
     volumes:
-    - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ./:/plugins-local/src/github.com/wtnb75/anystatic
-    - ./website:/files:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./:/plugins-local/src/github.com/wtnb75/anystatic
+      - ./website:/files:ro
     labels:
       traefik.enable: "true"
       traefik.http.routers.myrt.rule: Host(`static.localhost`)
