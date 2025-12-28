@@ -21,3 +21,54 @@ services:
       traefik.http.routers.myrt.rule: Host(`static.localhost`)
       traefik.http.routers.myrt.middlewares: myst
       traefik.http.middlewares.myst.plugin.anystatic.rootdir: /files
+
+  # benchmark
+  benchn:
+    image: nginx
+    volumes:
+      - website:/website
+      - ./bench/nginx.conf:/etc/nginx/nginx.conf
+    profiles: [bench]
+
+  bencht:
+    image: traefik
+    command:
+      - --api.insecure=true
+      - --providers.docker
+      #- --log.level=DEBUG
+      - --experimental.localPlugins.anystatic.modulename=github.com/wtnb75/anystatic
+    volumes:
+      - website:/website
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./:/plugins-local/src/github.com/wtnb75/anystatic
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.benchrt.rule: Host(`bencht`)
+      traefik.http.routers.benchrt.middlewares: benchst
+      traefik.http.middlewares.benchst.plugin.anystatic.rootdir: /website
+    profiles: [bench]
+    ports:
+      - 8801:8080
+
+  bencha:
+    build: ./bench
+    image: local/bench
+    volumes:
+      - website:/website
+    command:
+      - /anystatic
+      - -dir=/website
+      - -listen=:80
+    profiles: [bench]
+
+  workload:
+    image: local/bench
+    volumes:
+      - ./results:/results
+    command:
+      - sleep
+      - infinity
+    profiles: [bench]
+
+volumes:
+  website:
