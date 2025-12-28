@@ -34,13 +34,14 @@ Example configuration (YAML):
 experimental:
   plugins:
     anystatic:
-      modulename: github.com/wtnb75/anystatic
-      version: 1.0.0
+      moduleName: github.com/wtnb75/anystatic
+      version: v1.0.0
 http:
   routers:
     my-router:
       rule: Host(`hostname.localhost`)
-      middlewares: my-static
+      service: noop@internal
+      middlewares: [my-static]
   middlewares:
     my-static:
       plugin:
