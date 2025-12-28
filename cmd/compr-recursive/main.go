@@ -69,9 +69,15 @@ func compressFile(root fs.FS, basepath, path string, dry bool) error {
 					slog.Error("remove compressed file failed", "path", outfn, "error", err)
 					return err
 				}
-			} else {
-				slog.Info("compressed file created", "path", path, "compressed", outfn, "original_size", origst.Size(), "compressed_size", st.Size())
 			}
+			if st.Mode() != origst.Mode() {
+				slog.Info("chmod", "path", outfn, "mode", origst.Mode())
+				if err := os.Chmod(filepath.Join(".", outfn), origst.Mode()); err != nil {
+					slog.Error("chmod failed", "path", outfn, "error", err)
+					return err
+				}
+			}
+			slog.Info("compressed file created", "path", path, "compressed", outfn, "original_size", origst.Size(), "compressed_size", st.Size())
 		}
 	}
 	return nil
@@ -132,7 +138,7 @@ func main() {
 	slog.Info("args", "args", args)
 
 	if len(args) == 0 {
-		slog.Error("subcommand is required")
+		slog.Error("subcommand is required", "suggests", []string{"compress", "cleanup"})
 		panic("subcommand is required")
 	}
 

@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  GREETING: Hello, world!
+
+tasks:
+  default:
+    desc: list tasks
+    cmds:
+      - task -l
+    silent: true
+
+  bench:prepare:
+    desc: prepare benchmark
+    cmds:
+      - docker compose --profile bench build
+      - docker compose --profile bench up -d benchn bencht bencha workload
+      - docker compose exec bencha sh -c "cd /website ; sh /makedata.sh"
+
+  bench:run:
+    desc: run benchmark
+    cmds:
+      - caffeinate docker compose exec workload sh -x /mark.sh
+
+  bench:cleanup:
+    desc: cleanup benchmark
+    cmds:
+      - docker compose --profile bench down -v
