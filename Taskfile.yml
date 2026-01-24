@@ -23,6 +23,7 @@ tasks:
     desc: run benchmark
     cmds:
       - caffeinate docker compose exec workload sh -x /mark.sh
+      # - systemd-inhibit docker compose exec workload sh -x /mark.sh
 
   bench:cleanup:
     desc: cleanup benchmark
