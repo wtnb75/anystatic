@@ -120,8 +120,10 @@ func (h *Handler) serveHTTP(res http.ResponseWriter, req *http.Request) int {
 		if fp0, err := h.fs.Open(path); err == nil {
 			defer fp0.Close()
 			buf := make([]byte, 512)
-			if _, err := fp0.Read(buf); err == nil {
-				ctype = http.DetectContentType(buf)
+			if n, err := fp0.Read(buf); err == nil || err == io.EOF {
+				if n > 0 {
+					ctype = http.DetectContentType(buf[:n])
+				}
 			} else {
 				slog.Error("read for content-type failed", "path", path, "error", err)
 			}
