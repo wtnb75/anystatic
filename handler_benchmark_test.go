@@ -9,8 +9,13 @@ import (
 	"testing/fstest"
 )
 
-func init() {
+func muteBenchmarkLogger(b *testing.B) {
+	b.Helper()
+	previous := slog.Default()
 	slog.SetDefault(slog.New(slog.DiscardHandler))
+	b.Cleanup(func() {
+		slog.SetDefault(previous)
+	})
 }
 
 func benchmarkPayload(size int) []byte {
@@ -24,6 +29,7 @@ func benchmarkPayload(size int) []byte {
 }
 
 func BenchmarkAccepts(b *testing.B) {
+	muteBenchmarkLogger(b)
 	h := NewHandler(fstest.MapFS{})
 	header := "gzip, deflate, br, zstd, compress"
 
@@ -38,6 +44,7 @@ func BenchmarkAccepts(b *testing.B) {
 }
 
 func BenchmarkServeHTTP_NoCompression(b *testing.B) {
+	muteBenchmarkLogger(b)
 	data := benchmarkPayload(256 * 1024)
 	fsys := fstest.MapFS{
 		"large.txt": &fstest.MapFile{Data: data},
@@ -58,6 +65,7 @@ func BenchmarkServeHTTP_NoCompression(b *testing.B) {
 }
 
 func BenchmarkServeHTTP_GzipPreferred(b *testing.B) {
+	muteBenchmarkLogger(b)
 	original := benchmarkPayload(256 * 1024)
 	compressed := benchmarkPayload(32 * 1024)
 	fsys := fstest.MapFS{
@@ -84,6 +92,7 @@ func BenchmarkServeHTTP_GzipPreferred(b *testing.B) {
 }
 
 func BenchmarkServeHTTP_Parallel(b *testing.B) {
+	muteBenchmarkLogger(b)
 	data := benchmarkPayload(32 * 1024)
 	fsys := fstest.MapFS{
 		"parallel.txt": &fstest.MapFile{Data: data},
