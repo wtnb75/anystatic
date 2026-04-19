@@ -29,3 +29,49 @@ tasks:
     desc: cleanup benchmark
     cmds:
       - docker compose --profile bench down -v
+
+  bench:go:
+    desc: go test benchmark
+    cmds:
+      - go test -bench 'Benchmark' -benchmem -benchtime=200ms
+
+  build:
+    desc: build
+    cmds:
+      - go build
+
+  build:pkg:
+    desc: build
+    cmds:
+      - goreleaser --snapshot --clean
+
+  fmt:
+    desc: fmt
+    cmds:
+      - go fmt ./...
+      - go vet ./...
+
+  lint:
+    desc: lint
+    cmds:
+      - golangci-lint run
+
+  test:
+    desc: test
+    cmds:
+      - go test -v ./... -coverprofile=./cover.out -covermode=atomic
+        -coverpkg=./...
+      - go tool cover -func=cover.out
+      - go tool cover -html=cover.out -o cover.html
+
+  scan:
+    desc: scan code
+    cmds:
+      - ~/go/bin/govulncheck ./...
+      - ~/go/bin/gosec ./...
+
+  update:
+    desc: update deps
+    cmds:
+      - go get -u
+      - go mod tidy
