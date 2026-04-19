@@ -26,6 +26,7 @@ func realMain() error {
 	listen := flag.String("listen", ":8800", "listen address")
 	dir := flag.String("dir", ".", "serve directory")
 	verbose := flag.Bool("verbose", false, "enable verbose logging")
+	accessLogHeaders := flag.Bool("access-log-headers", true, "include request/response headers in access log")
 	flag.Parse()
 	level := slog.LevelInfo
 	if *verbose {
@@ -35,7 +36,7 @@ func realMain() error {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
 
 	fs := os.DirFS(*dir).(fs.StatFS)
-	hdl := anystatic.NewHandler(fs)
+	hdl := anystatic.NewHandler(fs, anystatic.WithAccessLogHeaders(*accessLogHeaders))
 	server := http.Server{
 		Handler: hdl,
 	}
