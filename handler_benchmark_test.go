@@ -2,6 +2,7 @@ package anystatic
 
 import (
 	"bytes"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +13,7 @@ import (
 func muteBenchmarkLogger(b *testing.B) {
 	b.Helper()
 	previous := slog.Default()
-	slog.SetDefault(slog.New(slog.DiscardHandler))
+	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, nil))) //nolint:sloglint
 	b.Cleanup(func() {
 		slog.SetDefault(previous)
 	})

@@ -35,6 +35,11 @@ tasks:
     cmds:
       - go test -bench 'Benchmark' -benchmem -benchtime=200ms
 
+  bench:yaegi:
+    desc: go test benchmark
+    cmds:
+      - yaegi test -bench 'Benchmark' -benchmem -benchtime=200ms
+
   build:
     desc: build
     cmds:
@@ -62,7 +67,11 @@ tasks:
       - go test -v ./... -coverprofile=./cover.out -covermode=atomic
         -coverpkg=./...
       - go tool cover -func=cover.out
-      - go tool cover -html=cover.out -o cover.html
+
+  test:yaegi:
+    desc: test yaegi
+    cmds:
+      - yaegi test -v
 
   scan:
     desc: scan code
