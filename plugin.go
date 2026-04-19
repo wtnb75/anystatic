@@ -10,7 +10,8 @@ import (
 )
 
 type Config struct {
-	RootDir string `json:"rootdir,omitempty"`
+	RootDir          string `json:"rootdir,omitempty"`
+	LogAccessHeaders *bool  `json:"logaccessheaders,omitempty"`
 }
 
 func CreateConfig() *Config {
@@ -29,7 +30,11 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}
 	slog.Info("anystatic plugin initialized", "rootdir", config.RootDir)
 	fs := os.DirFS(config.RootDir).(fs.StatFS)
-	hdl := NewHandler(fs)
+	opts := []HandlerOption{}
+	if config.LogAccessHeaders != nil {
+		opts = append(opts, WithAccessLogHeaders(*config.LogAccessHeaders))
+	}
+	hdl := NewHandler(fs, opts...)
 
 	return &AnyStatic{
 		next: next,

@@ -7,6 +7,27 @@ import (
 	"testing/fstest"
 )
 
+func TestNewHandler_DefaultAccessHeaderLoggingEnabled(t *testing.T) {
+	h := NewHandler(fstest.MapFS{})
+	if !h.logAccessHeaders {
+		t.Errorf("expected access header logging to be enabled by default")
+	}
+}
+
+func TestNewHandler_WithAccessLogHeaders_Disabled(t *testing.T) {
+	h := NewHandler(fstest.MapFS{}, WithAccessLogHeaders(false))
+	if h.logAccessHeaders {
+		t.Errorf("expected access header logging to be disabled")
+	}
+}
+
+func TestNewHandler_WithAccessLogHeaders_Enabled(t *testing.T) {
+	h := NewHandler(fstest.MapFS{}, WithAccessLogHeaders(false), WithAccessLogHeaders(true))
+	if !h.logAccessHeaders {
+		t.Errorf("expected access header logging to be enabled")
+	}
+}
+
 // TestAccepts_EmptyAcceptEncoding tests accepts() with empty header
 func TestAccepts_EmptyAcceptEncoding(t *testing.T) {
 	h := NewHandler(fstest.MapFS{})
@@ -194,6 +215,27 @@ func TestServeHTTP_DirectoryIndexHTMLWithTrailingSlash(t *testing.T) {
 
 	if body := w.Body.String(); body != "<html>Dir</html>" {
 		t.Errorf("expected body '<html>Dir</html>', got %q", body)
+	}
+}
+
+// TestServeHTTP_ContentTypeFallbackSniff tests unknown extension still uses sniffing
+func TestServeHTTP_ContentTypeFallbackSniff(t *testing.T) {
+	fsys := fstest.MapFS{
+		"unknown.xxx": &fstest.MapFile{Data: []byte("<html><body>hello</body></html>")},
+	}
+	h := NewHandler(fsys)
+
+	req := httptest.NewRequest("GET", "/unknown.xxx", nil)
+	w := httptest.NewRecorder()
+
+	h.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	if ct := w.Header().Get("Content-Type"); ct == "" || ct == "application/octet-stream" {
+		t.Errorf("expected sniffed Content-Type, got %q", ct)
 	}
 }
 

@@ -24,6 +24,12 @@ go install github.com/wtnb75/anystatic/cmd/anystatic@latest
 $(go env GOPATH)/bin/anystatic -dir=/var/www -listen=:8080
 ```
 
+Disable request/response headers in access logs (recommended for high-traffic deployments):
+
+```bash
+$(go env GOPATH)/bin/anystatic -dir=/var/www -listen=:8080 -access-log-headers=false
+```
+
 ## Using as a Traefik Plugin
 
 When used as a Traefik plugin, Anystatic serves pre-compressed files when the request's `Accept-Encoding` header matches an available compressed variant.
@@ -47,6 +53,7 @@ http:
       plugin:
         anystatic:
           rootdir: /var/www
+          logaccessheaders: false
 ```
 
 see also: [compose.yml](./compose.yml)
