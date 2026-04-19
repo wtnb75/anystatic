@@ -12,7 +12,7 @@ import (
 )
 
 type Handler struct {
-	fs                fs.StatFS
+	fs               fs.StatFS
 	logAccessHeaders bool
 }
 

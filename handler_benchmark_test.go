@@ -2,7 +2,6 @@ package anystatic
 
 import (
 	"bytes"
-	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +10,7 @@ import (
 )
 
 func init() {
-	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, nil)))
+	slog.SetDefault(slog.New(slog.DiscardHandler))
 }
 
 func benchmarkPayload(size int) []byte {
