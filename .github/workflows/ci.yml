@@ -1,0 +1,19 @@
+name: ci
+
+on:
+  push: {}
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: wtnb75/actions/golang@v1
+    - name: prepare yaegi
+      run: go install github.com/traefik/yaegi/cmd/yaegi@latest
+      shell: bash
+    - uses: wtnb75/actions/gotest@v1
+    - name: yaegi test
+      run: yaegi test .
+      shell: bash
