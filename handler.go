@@ -77,7 +77,7 @@ func (h *Handler) accepts(accept string) []encodeInfo {
 
 	counts := map[string]int{}
 	known := 0
-	for v := range strings.SplitSeq(accept, ",") {
+	for _, v := range strings.Split(accept, ",") {
 		vv := strings.SplitN(v, ";", 2)
 		enc := strings.TrimSpace(vv[0])
 		if _, ok := sortorder[enc]; ok {
