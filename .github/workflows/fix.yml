@@ -16,3 +16,4 @@ jobs:
     - uses: wtnb75/actions/gofix@v1
       with:
         go-test-args: "-v ./..."
+        go-fix-args: "-stringsseq=false"
